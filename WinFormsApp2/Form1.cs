@@ -27,8 +27,10 @@ namespace WinFormsApp2
                 this.height = height;
             }
 
-            public Circle draw()
+            public Circle draw(Graphics g)
             {
+                g.DrawEllipse(new Pen(Brushes.Black, 3), x, y, width, height);
+
                 return this;
             }
             public Circle resize(string dir, int x, int y)
@@ -61,9 +63,7 @@ namespace WinFormsApp2
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            var g = e.Graphics;
-
-            g.DrawEllipse(new Pen(Brushes.Black, 3), mainShape.x, mainShape.y, mainShape.width, mainShape.height);
+            mainShape.draw(e.Graphics);
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
