@@ -8,86 +8,103 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using WinFormsApp2.Shapes;
+using WinFormsApp2.ResizePoints;
+
 namespace WinFormsApp2
 {
     public partial class Form1 : Form
     {
-        public class Circle
+        public class SelectedShape
         {
-            public int x;
-            public int y;
-            public int width;
-            public int height;
-
-            public Circle(int x, int y, int width, int height)
+            public SelectedShape(Shape c)
             {
-                this.x = x;
-                this.y = y;
-                this.width = width;
-                this.height = height;
+                shape = c;
+                shape.isSelected = true;
             }
 
-            public Circle draw(Graphics g)
+            public Shape shape;
+            public int dx;
+            public int dy;
+
+            public SelectedShape setDelta(int x, int y)
             {
-                g.DrawEllipse(new Pen(Brushes.Black, 3), x, y, width, height);
+                dx = x - shape.x;
+                dy = y - shape.y;
 
                 return this;
             }
-            public Circle resize(string dir, int x, int y)
+            public void move(int x, int y)
             {
-                return this;
-            }
-            public Circle move(int dx, int dy, int x, int y)
-            {
-                // calc shape position
-                this.x = x - dx;
-                this.y = y - dy;
-
-                return this;
+                shape.move(dx, dy, x, y);
             }
         }
+
         public Form1()
         {
             InitializeComponent();
         }
 
-        public Circle mainShape;
-        public Circle selected;
-        int dx;
-        int dy;
+        public List<Shape> shapeList;
+
+        public SelectedShape selected;
+
         bool userIsHolding = false;
         private void Form1_Load(object sender, EventArgs e)
         {
-            mainShape = new Circle(100, 200, 300, 300);
+            shapeList = new List<Shape>();
+
+            shapeList.Add(new Rectan(100, 200, 100, 100));
+            shapeList.Add(new Circle(300, 200, 100, 100));
+            shapeList.Add(new Line(400, 200, 420, 240));
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            mainShape.draw(e.Graphics);
+
+            foreach (var shape in shapeList)
+                shape.draw(e.Graphics);
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
             userIsHolding = true;
-            // TODO: Implement resize
 
-            // loop throw all shapes
-
-            Rectangle rec = new Rectangle(mainShape.x, mainShape.y, mainShape.width, mainShape.height);
-
-            if (rec.Contains(e.X, e.Y))
+            if (selected != null)
             {
-                // calc d
-                dx = e.X - rec.X;
-                dy = e.Y - rec.Y;
+                if(selected.shape.onResize(e.X, e.Y))
+                {
+                    return;
+                }
 
-                selected = mainShape;
+                selected.shape.isSelected = false;
+                Invalidate();
             }
+
+            foreach (var shape in shapeList)
+            {
+                Rectangle rec = new Rectangle(shape.x, shape.y, shape.width, shape.height);
+
+                if (rec.Contains(e.X, e.Y))
+                {
+                    selected = new SelectedShape(shape);
+
+                    selected.setDelta(e.X, e.Y);
+
+                    return;
+                }
+            }
+
+            selected = null;
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
         {
-            selected = null;
+            if (selected != null)
+            {
+                selected.shape.resizePoint = null;
+            }
+
             userIsHolding = false;
         }
 
@@ -95,7 +112,13 @@ namespace WinFormsApp2
         {
             if(selected != null && userIsHolding)
             {
-                selected.move(dx, dy, e.X, e.Y);
+                if (selected.shape.resizePoint != null)
+                {
+                   selected.shape.resize(e.X, e.Y);
+                } else
+                {
+                    selected.move(e.X, e.Y);
+                }
 
                 Invalidate();
             }
