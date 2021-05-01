@@ -15,31 +15,6 @@ namespace WinFormsApp2
 {
     public partial class Form1 : Form
     {
-        public class SelectedShape
-        {
-            public SelectedShape(Shape c)
-            {
-                shape = c;
-                shape.isSelected = true;
-            }
-
-            public Shape shape;
-            public int dx;
-            public int dy;
-
-            public SelectedShape setDelta(int x, int y)
-            {
-                dx = x - shape.x;
-                dy = y - shape.y;
-
-                return this;
-            }
-            public void move(int x, int y)
-            {
-                shape.move(dx, dy, x, y);
-            }
-        }
-
         public Form1()
         {
             InitializeComponent();
